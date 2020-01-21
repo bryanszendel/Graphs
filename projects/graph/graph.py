@@ -3,6 +3,17 @@ Simple graph implementation
 """
 from util import Stack, Queue  # These may come in handy
 
+# MEMORIZE THIS for DFT and BFT:   
+        # Create a queue/stack as appropriate
+        # Put the starting point in that
+        # Make a set to track where we've been
+        # While there is stuff in the queue/stack
+        #   If not visited:
+        #       DO THE THING!
+        #       Add to visited
+        #       For each edge in the item
+        #           Add that edge to the queue/stack
+
 class Graph:
 
     """Represent a graph as a dictionary of vertices mapping labels to edges."""
@@ -13,33 +24,84 @@ class Graph:
         """
         Add a vertex to the graph.
         """
-        pass  # TODO
+        self.vertices[vertex_id] = set()
 
     def add_edge(self, v1, v2):
         """
         Add a directed edge to the graph.
+
+        If both exist, add a connection from v1 to v2.
         """
-        pass  # TODO
+        if v1 in self.vertices and v2 in self.vertices:
+            self.vertices[v1].add(v2)
+        else:
+            raise IndexError("That vertex does not exist.")
 
     def get_neighbors(self, vertex_id):
         """
         Get all neighbors (edges) of a vertex.
         """
-        pass  # TODO
+        return self.vertices[vertex_id]
 
     def bft(self, starting_vertex):
         """
         Print each vertex in breadth-first order
         beginning from starting_vertex.
         """
-        pass  # TODO
+# Create a queue/stack as appropriate
+        queue = Queue()
+
+        # Put the starting point in that
+        queue.enqueue(starting_vertex)
+        
+        # Make a set to track where we've been
+        visited = set()
+        
+        # While there is stuff in the queue/stack
+        while queue.size() > 0:
+        #   Pop the first item
+    
+        #   If not visited:
+            if queue[0] not in visited:
+        #       DO THE THING!
+        #       Add to visited
+                print(queue[0])
+                visited.add(queue[0])
+        #       For each edge in the item
+                for next_vert in self.get_neighbors(queue[0]):
+        #           Add that edge to the queue/stack
+                    queue.enqueue(next_vert)
+                queue.dequeue()
 
     def dft(self, starting_vertex):
         """
         Print each vertex in depth-first order
         beginning from starting_vertex.
         """
-        pass  # TODO
+        # Create a queue/stack as appropriate
+        stack = Stack()
+
+        # Put the starting point in that
+        stack.push(starting_vertex)
+        
+        # Make a set to track where we've been
+        visited = set()
+        
+        # While there is stuff in the queue/stack
+        while stack.size() > 0:
+        #   Pop the first item
+            vertex = stack.pop()
+        #   If not visited:
+            if vertex not in visited:
+        #       DO THE THING!
+        #       Add to visited
+                print(vertex)
+                visited.add(vertex)
+        #       For each edge in the item
+                for next_vert in self.get_neighbors(vertex):
+        #           Add that edge to the queue/stack
+                    stack.push(next_vert)
+
 
     def dft_recursive(self, starting_vertex):
         """
@@ -118,6 +180,7 @@ if __name__ == '__main__':
         1, 2, 4, 3, 7, 6, 5
         1, 2, 4, 3, 7, 5, 6
     '''
+    print('running bft')
     graph.bft(1)
 
     '''
@@ -127,13 +190,17 @@ if __name__ == '__main__':
         1, 2, 4, 7, 6, 3, 5
         1, 2, 4, 6, 3, 5, 7
     '''
+    print('running dft')
     graph.dft(1)
+
+    print('running dft recursive')
     graph.dft_recursive(1)
 
     '''
     Valid BFS path:
         [1, 2, 4, 6]
     '''
+    print('running bfs')
     print(graph.bfs(1, 6))
 
     '''
