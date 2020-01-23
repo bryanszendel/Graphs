@@ -1,4 +1,5 @@
 import random
+from util import Stack, Queue
 
 class User:
     def __init__(self, name):
@@ -63,8 +64,47 @@ class SocialGraph:
 
         random.shuffle(possible_friendships)
         # print(possible_friendships[:num_users*avg_friendships])
-        for pair in possible_friendships[:num_users*avg_friendships]:
+        for pair in possible_friendships[:num_users]:
             self.add_friendship(pair[0], pair[1])
+
+    def get_neighbors(self, user_id):
+        """
+        Get all neighbors (edges) of a vertex.
+        """
+        return self.friendships[user_id]
+
+    def dfs(self, starting_id, destination_id):
+        """
+        Return a list containing a path from
+        starting_vertex to destination_vertex in
+        depth-first order.
+        """
+        # Create a queue/stack as appropriate
+        stack = Stack()
+
+        # Put the starting point in that
+        stack.push([starting_id])
+        
+        # Make a set to track where we've been
+        visited = set()
+        
+        # While there is stuff in the queue/stack
+        while stack.size() > 0:
+        #   Pop the first item
+            path = stack.pop()
+            vertex = path[-1]
+        #   If not visited:
+            if vertex not in visited:
+                if vertex == destination_id:
+        #           DO THE THING!
+                    return path
+                visited.add(vertex)
+        #       For each edge in the item
+                for next_vert in self.get_neighbors(vertex):
+        #           Copy path to avoid pass by reference bug
+                    new_path = list(path) # make a 'copy' rather than 'reference'
+                    new_path.append(next_vert)
+                    stack.push(new_path)
 
     def get_all_social_paths(self, user_id):
         """
@@ -77,12 +117,22 @@ class SocialGraph:
         """
         visited = {}  # Note that this is a dictionary, not a set
         # !!!! IMPLEMENT ME
+        user_friendships = self.friendships[user_id]
+        print('user_friendships', user_friendships)
+        for user in user_friendships:
+            friends = self.dfs(user, user_id)
+            new_friends = []
+            for friend in friends:
+                if friend != user:
+                    new_friends.append(friend)
+            visited[user] = new_friends
+            # visited[user] = self.dfs(user, user_id)
         return visited
 
 
 if __name__ == '__main__':
     sg = SocialGraph()
     sg.populate_graph(10, 2)
-    print(sg.friendships)
+    print(sg.friendships, "\n")
     connections = sg.get_all_social_paths(1)
     print(connections)
