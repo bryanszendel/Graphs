@@ -1,6 +1,30 @@
 import random
 from util import Stack, Queue
 
+
+"""
+graph - Social Network
+node - Users/people
+edge - Friendships/connections between them / bidirectional/undirected
+connected components - user's extended social network
+
+bfs/t - 'find the shortest path to'
+dfs/t
+"""
+
+class Queue():
+    def __init__(self):
+        self.queue = []
+    def enqueue(self, value):
+        self.queue.append(value)
+    def dequeue(self):
+        if self.size() > 0:
+            return self.queue.pop(0)
+        else:
+            return None
+    def size(self):
+        return len(self.queue)
+
 class User:
     def __init__(self, name):
         self.name = name
@@ -14,18 +38,23 @@ class SocialGraph:
     def add_friendship(self, user_id, friend_id):
         """
         Creates a bi-directional friendship
+        Edges
         """
         if user_id == friend_id:
             print("WARNING: You cannot be friends with yourself")
+            return False
         elif friend_id in self.friendships[user_id] or user_id in self.friendships[friend_id]:
             print("WARNING: Friendship already exists")
+            return False
         else:
             self.friendships[user_id].add(friend_id)
             self.friendships[friend_id].add(user_id)
+            return True
 
     def add_user(self, name):
         """
         Create a new user with a sequential integer ID
+        Nodes
         """
         self.last_id += 1  # automatically increment the ID to assign the new user
         self.users[self.last_id] = User(name)
@@ -51,60 +80,40 @@ class SocialGraph:
         for i in range(num_users):
             self.add_user(i)
 
+        # SOLUTION
+        target_friendships = (num_users * avg_friendships)
+        total_friendships = 0
+        collisions = 0
+        while total_friendships < target_friendships:
+            #Create random friendship
+            user_id = random.randint(1, self.last_id)
+            friend_id = random.randint(1, self.last_id)
+            if self.add_friendship(user_id, friend_id):
+                total_friendships += 2
+            else:
+                collisions += 1
+        print(f"COLLISIONS: {collisions}")
+
+        """
+
+        MY SOLUTION
+
         # Create friendships
         possible_friendships = []
         visited = []
-        visited_inc = 0
         for user in self.users:
             for friend in self.users:
                 if user < friend:
                     possible_friendships.append((user, friend))
             visited.append(user)
-            visited_inc += 1
 
         random.shuffle(possible_friendships)
         # print(possible_friendships[:num_users*avg_friendships])
         for pair in possible_friendships[:num_users]:
             self.add_friendship(pair[0], pair[1])
+        """
 
-    def get_neighbors(self, user_id):
-        """
-        Get all neighbors (edges) of a vertex.
-        """
-        return self.friendships[user_id]
 
-    def dfs(self, starting_id, destination_id):
-        """
-        Return a list containing a path from
-        starting_vertex to destination_vertex in
-        depth-first order.
-        """
-        # Create a queue/stack as appropriate
-        stack = Stack()
-
-        # Put the starting point in that
-        stack.push([starting_id])
-        
-        # Make a set to track where we've been
-        visited = set()
-        
-        # While there is stuff in the queue/stack
-        while stack.size() > 0:
-        #   Pop the first item
-            path = stack.pop()
-            vertex = path[-1]
-        #   If not visited:
-            if vertex not in visited:
-                if vertex == destination_id:
-        #           DO THE THING!
-                    return path
-                visited.add(vertex)
-        #       For each edge in the item
-                for next_vert in self.get_neighbors(vertex):
-        #           Copy path to avoid pass by reference bug
-                    new_path = list(path) # make a 'copy' rather than 'reference'
-                    new_path.append(next_vert)
-                    stack.push(new_path)
 
     def get_all_social_paths(self, user_id):
         """
@@ -115,24 +124,40 @@ class SocialGraph:
 
         The key is the friend's ID and the value is the path.
         """
+        # Note: 'Every' means traversal
         visited = {}  # Note that this is a dictionary, not a set
         # !!!! IMPLEMENT ME
-        user_friendships = self.friendships[user_id]
-        print('user_friendships', user_friendships)
-        for user in user_friendships:
-            friends = self.dfs(user, user_id)
-            new_friends = []
-            for friend in friends:
-                if friend != user:
-                    new_friends.append(friend)
-            visited[user] = new_friends
-            # visited[user] = self.dfs(user, user_id)
+
+        # Create Queue
+        queue = Queue()
+
+        # Enqueue starting point in a list to start path
+        queue.enqueue([user_id])
+        # While queue not empty
+        while queue.size() > 0:
+            # Dequeue the path
+            path = queue.dequeue()
+            # Find the last vertex in path
+            curr_friend = path[-1]
+            # If we haven't visited this vertex
+            if curr_friend not in visited:
+                # DO THE THING!
+                # Add to visited
+                visited[curr_friend] = path
+                # Make new paths(copy) and enqueue for each vertex
+                for friend_id in self.friendships[curr_friend]:
+                    new_path = list(path)
+                    new_path.append(friend_id)
+                    queue.enqueue(new_path)
+
         return visited
 
 
 if __name__ == '__main__':
     sg = SocialGraph()
     sg.populate_graph(10, 2)
+    print("-----------Printing Friendships-------------")
     print(sg.friendships, "\n")
+    print("-----------Printing Connections-------------")
     connections = sg.get_all_social_paths(1)
-    print(connections)
+    print(connections, "\n")
